@@ -253,23 +253,23 @@
         <section class="stats-grid">
             <div class="stat-card">
                 <div class="stat-title">Total Orders Today</div>
-                <div class="stat-value" style="color: var(--primary);">482</div>
-                <div class="stat-status" style="color: var(--success);">↑ 18% from yesterday</div>
+                <div class="stat-value" id="adminTotalOrders" style="color: var(--primary);">482</div>
+                <div class="stat-status" id="adminOrdersStatus" style="color: var(--success);">↑ 18% from yesterday</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">Gross Campus Volume</div>
-                <div class="stat-value">₹56,430</div>
+                <div class="stat-value" id="adminGrossVolume">₹56,430</div>
                 <div class="stat-status" style="color: var(--text-secondary);">Via Razorpay Campus Gateway</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">Active Outlets</div>
-                <div class="stat-value">4 / 4</div>
+                <div class="stat-value" id="adminActiveOutlets">4 / 4</div>
                 <div class="stat-status" style="color: var(--success);">● All kitchens operational</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">System & API Status</div>
-                <div class="stat-value" style="color: var(--success);">Healthy</div>
-                <div class="stat-status" style="color: var(--success);">✓ 0 Critical Glitches</div>
+                <div class="stat-value" id="adminSystemStatus" style="color: var(--success);">Healthy</div>
+                <div class="stat-status" id="adminApiStatus" style="color: var(--success);">✓ 0 Critical Glitches</div>
             </div>
         </section>
 
@@ -285,7 +285,7 @@
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="outletTableBody">
                         <tr>
                             <td><strong>Main Food Court</strong></td>
                             <td>214 orders</td>
@@ -316,25 +316,27 @@
 
             <div class="panel">
                 <div class="panel-title">System & Glitch Audit Log</div>
-                <div class="log-item">
-                    <span class="log-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">RESOLVED</span>
-                    <div>
-                        <div>Razorpay Webhook synced</div>
-                        <div style="color: var(--text-secondary); font-size: 0.75rem;">12 mins ago &bull; Latency: 42ms</div>
+                <div id="auditLogContainer">
+                    <div class="log-item">
+                        <span class="log-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">RESOLVED</span>
+                        <div>
+                            <div>Razorpay Webhook synced</div>
+                            <div style="color: var(--text-secondary); font-size: 0.75rem;">12 mins ago &bull; Latency: 42ms</div>
+                        </div>
                     </div>
-                </div>
-                <div class="log-item">
-                    <span class="log-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning);">MONITOR</span>
-                    <div>
-                        <div>Peak load on Main Food Court</div>
-                        <div style="color: var(--text-secondary); font-size: 0.75rem;">28 mins ago &bull; 14 simultaneous orders</div>
+                    <div class="log-item">
+                        <span class="log-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning);">MONITOR</span>
+                        <div>
+                            <div>Peak load on Main Food Court</div>
+                            <div style="color: var(--text-secondary); font-size: 0.75rem;">28 mins ago &bull; 14 simultaneous orders</div>
+                        </div>
                     </div>
-                </div>
-                <div class="log-item">
-                    <span class="log-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">SYSTEM</span>
-                    <div>
-                        <div>Database backup routine completed</div>
-                        <div style="color: var(--text-secondary); font-size: 0.75rem;">1 hr ago &bull; MongoDB Atlas Cluster</div>
+                    <div class="log-item">
+                        <span class="log-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">SYSTEM</span>
+                        <div>
+                            <div>Database backup routine completed</div>
+                            <div style="color: var(--text-secondary); font-size: 0.75rem;">1 hr ago &bull; MongoDB Atlas Cluster</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -342,6 +344,81 @@
     </main>
 
     <script>
+        const API_BASE = 'http://localhost:5000/api';
+
+        async function fetchAdminStats() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/stats`);
+                if (res.ok) {
+                    const { data } = await res.json();
+                    if (data) {
+                        document.getElementById('adminTotalOrders').textContent = data.totalOrdersToday;
+                        document.getElementById('adminGrossVolume').textContent = `₹${data.grossVolumeINR.toLocaleString('en-IN')}`;
+                        document.getElementById('adminActiveOutlets').textContent = data.activeOutlets;
+                        document.getElementById('adminSystemStatus').textContent = data.systemStatus;
+
+                        if (data.outletOverview && data.outletOverview.length > 0) {
+                            const tbody = document.getElementById('outletTableBody');
+                            tbody.innerHTML = data.outletOverview.map(o => `
+                                <tr>
+                                    <td><strong>${o.name}</strong></td>
+                                    <td>${o.ordersCount} orders</td>
+                                    <td>${o.avgPrepTimeMinutes} mins</td>
+                                    <td><span class="status-pill ${o.status === 'High Traffic' ? 'status-busy' : 'status-online'}">${o.status}</span></td>
+                                </tr>
+                            `).join('');
+                        }
+
+                        if (data.auditLogs && data.auditLogs.length > 0) {
+                            const logsDiv = document.getElementById('auditLogContainer');
+                            logsDiv.innerHTML = data.auditLogs.map(l => `
+                                <div class="log-item">
+                                    <span class="log-badge" style="background: ${l.badgeColor === 'warning' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${l.badgeColor === 'warning' ? 'var(--warning)' : 'var(--success)'};">${l.type}</span>
+                                    <div>
+                                        <div>${l.title}</div>
+                                        <div style="color: var(--text-secondary); font-size: 0.75rem;">${l.time} &bull; ${l.meta}</div>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+
+                        updateAdminApiBadge(true);
+                        return;
+                    }
+                }
+            } catch (err) {
+                updateAdminApiBadge(false);
+            }
+        }
+
+        function updateAdminApiBadge(isOnline) {
+            let badge = document.getElementById('adminApiBadge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.id = 'adminApiBadge';
+                badge.style.fontSize = '0.75rem';
+                badge.style.padding = '0.3rem 0.7rem';
+                badge.style.borderRadius = '9999px';
+                badge.style.fontWeight = '600';
+                badge.style.display = 'inline-flex';
+                badge.style.alignItems = 'center';
+                badge.style.gap = '0.35rem';
+                const actions = document.querySelector('.nav-actions');
+                if (actions) actions.insertBefore(badge, actions.firstChild);
+            }
+            if (isOnline) {
+                badge.style.background = 'rgba(16, 185, 129, 0.15)';
+                badge.style.color = '#10b981';
+                badge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+                badge.innerHTML = '● Live API';
+            } else {
+                badge.style.background = 'rgba(245, 158, 11, 0.15)';
+                badge.style.color = '#f59e0b';
+                badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+                badge.innerHTML = '○ Demo Mode';
+            }
+        }
+
         const rootElement = document.documentElement;
         const toggleBtn = document.getElementById('themeToggleBtn');
         const savedTheme = localStorage.getItem('gobite-theme') || 'dark';
@@ -354,6 +431,9 @@
             localStorage.setItem('gobite-theme', nextTheme);
             toggleBtn.textContent = nextTheme === 'light' ? '🌙' : '☀️';
         });
+
+        fetchAdminStats();
+        setInterval(fetchAdminStats, 6000);
     </script>
 </body>
 </html>

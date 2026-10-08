@@ -472,18 +472,101 @@
             `;
         }
 
-        function moveOrderStatus(id, newStatus) {
+        const API_BASE = 'http://localhost:5000/api';
+
+        async function fetchOrdersFromBackend() {
+            try {
+                const res = await fetch(`${API_BASE}/orders?outlet=${encodeURIComponent('KC Food Court')}`);
+                if (res.ok) {
+                    const result = await res.json();
+                    if (result.data) {
+                        orders = result.data.map(o => ({
+                            id: o.orderToken || o._id,
+                            studentName: o.studentName || 'Student',
+                            regNo: o.regNo || '24BBS0000',
+                            time: formatOrderTime(o.createdAt),
+                            items: (o.items || []).map(i => ({ name: i.name, qty: i.qty || 1 })),
+                            total: o.totalAmount || 0,
+                            status: o.orderStatus || 'incoming'
+                        }));
+                        renderOrders();
+                        updateVendorApiBadge(true);
+                        return;
+                    }
+                }
+            } catch (err) {
+                updateVendorApiBadge(false);
+            }
+        }
+
+        function formatOrderTime(createdAt) {
+            if (!createdAt) return 'Just now';
+            const diffMs = Date.now() - new Date(createdAt).getTime();
+            const diffMins = Math.floor(diffMs / 60000);
+            if (diffMins < 1) return 'Just now';
+            return `${diffMins} mins ago`;
+        }
+
+        function updateVendorApiBadge(isOnline) {
+            let badge = document.getElementById('vendorApiBadge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.id = 'vendorApiBadge';
+                badge.style.fontSize = '0.75rem';
+                badge.style.padding = '0.3rem 0.7rem';
+                badge.style.borderRadius = '9999px';
+                badge.style.fontWeight = '600';
+                badge.style.display = 'inline-flex';
+                badge.style.alignItems = 'center';
+                badge.style.gap = '0.35rem';
+                const actions = document.querySelector('.nav-actions');
+                if (actions) actions.insertBefore(badge, actions.firstChild);
+            }
+            if (isOnline) {
+                badge.style.background = 'rgba(16, 185, 129, 0.15)';
+                badge.style.color = '#10b981';
+                badge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+                badge.innerHTML = '● Live Sync';
+            } else {
+                badge.style.background = 'rgba(245, 158, 11, 0.15)';
+                badge.style.color = '#f59e0b';
+                badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+                badge.innerHTML = '○ Prototype Standby';
+            }
+        }
+
+        async function moveOrderStatus(id, newStatus) {
             const target = orders.find(o => o.id === id);
             if (target) {
                 target.status = newStatus;
                 renderOrders();
             }
+
+            try {
+                await fetch(`${API_BASE}/orders/${encodeURIComponent(id)}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+            } catch (err) {
+                console.log('Status updated locally (backend offline):', err.message);
+            }
         }
 
-        function completeOrder(id) {
+        async function completeOrder(id) {
             orders = orders.filter(o => o.id !== id);
             completedCount++;
             renderOrders();
+
+            try {
+                await fetch(`${API_BASE}/orders/${encodeURIComponent(id)}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'completed' })
+                });
+            } catch (err) {
+                console.log('Order completed locally (backend offline):', err.message);
+            }
         }
 
         // Dark / Light Theme Sync
@@ -501,6 +584,8 @@
         });
 
         renderOrders();
+        fetchOrdersFromBackend();
+        setInterval(fetchOrdersFromBackend, 5000);
     </script>
 </body>
 </html>

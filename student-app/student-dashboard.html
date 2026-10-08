@@ -749,12 +749,74 @@
             totalDisplay.textContent = `₹${grandTotal}`;
         }
 
-        function switchOutlet(name) {
+        const API_BASE = 'http://localhost:5000/api';
+
+        async function fetchMenuFromBackend(outletName) {
+            try {
+                const res = await fetch(`${API_BASE}/menu?outlet=${encodeURIComponent(outletName)}`);
+                if (res.ok) {
+                    const result = await res.json();
+                    if (result.data && result.data.length > 0) {
+                        menuData.length = 0;
+                        result.data.forEach(item => {
+                            menuData.push({
+                                id: item.id || item._id,
+                                name: item.name,
+                                price: item.price,
+                                veg: item.veg,
+                                inStock: item.inStock,
+                                desc: item.desc,
+                                img: item.img
+                            });
+                        });
+                        cartState = {};
+                        renderMenu();
+                        updateCartUI();
+                        updateApiBadge(true);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.log('Backend not reached, using offline prototype menu:', err.message);
+                updateApiBadge(false);
+            }
+        }
+
+        function updateApiBadge(isOnline) {
+            let badge = document.getElementById('apiStatusBadge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.id = 'apiStatusBadge';
+                badge.style.fontSize = '0.75rem';
+                badge.style.padding = '0.3rem 0.7rem';
+                badge.style.borderRadius = '9999px';
+                badge.style.fontWeight = '600';
+                badge.style.display = 'flex';
+                badge.style.alignItems = 'center';
+                badge.style.gap = '0.35rem';
+                const headerNav = document.querySelector('.nav-actions');
+                if (headerNav) headerNav.insertBefore(badge, headerNav.firstChild);
+            }
+            if (isOnline) {
+                badge.style.background = 'rgba(16, 185, 129, 0.15)';
+                badge.style.color = '#10b981';
+                badge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+                badge.innerHTML = '● API Online';
+            } else {
+                badge.style.background = 'rgba(245, 158, 11, 0.15)';
+                badge.style.color = '#f59e0b';
+                badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+                badge.innerHTML = '○ Prototype Mode';
+            }
+        }
+
+        async function switchOutlet(name) {
             currentOutlet = name;
             document.getElementById('outletHeading').textContent = `${name} Menu`;
             document.querySelectorAll('.outlet-pill').forEach(el => {
                 el.classList.toggle('active', el.textContent.includes(name));
             });
+            await fetchMenuFromBackend(name);
         }
 
         const drawer = document.getElementById('cartDrawer');
@@ -780,8 +842,8 @@
             closeCart();
             let total = 0;
             Object.keys(cartState).forEach(id => {
-                const item = menuData.find(m => m.id === Number(id));
-                total += item.price * cartState[id];
+                const item = menuData.find(m => String(m.id) === String(id));
+                if (item) total += item.price * cartState[id];
             });
             document.getElementById('rzpOutletName').textContent = currentOutlet;
             document.getElementById('rzpModalPrice').textContent = `₹${total}`;
@@ -792,9 +854,63 @@
             rzpModal.style.display = 'none';
         }
 
-        document.getElementById('confirmPaymentBtn').onclick = () => {
-            const token = "GB-" + Math.floor(1000 + Math.random() * 9000);
-            alert(`🎉 Payment Successful via Razorpay!\nYour Order Token is: ${token}\nShow this token at ${currentOutlet} for pickup.`);
+        document.getElementById('confirmPaymentBtn').onclick = async () => {
+            const btn = document.getElementById('confirmPaymentBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing Razorpay...';
+
+            let orderItems = [];
+            let total = 0;
+            Object.keys(cartState).forEach(id => {
+                const item = menuData.find(m => String(m.id) === String(id));
+                if (item) {
+                    const qty = cartState[id];
+                    orderItems.push({ name: item.name, price: item.price, qty: qty });
+                    total += item.price * qty;
+                }
+            });
+
+            let token = "GB-" + Math.floor(1000 + Math.random() * 9000);
+            let syncedToBackend = false;
+
+            try {
+                // Call backend Razorpay & Order API
+                const rzpRes = await fetch(`${API_BASE}/payment/create-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: total, outletName: currentOutlet })
+                });
+
+                const orderRes = await fetch(`${API_BASE}/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentName: 'Kapish Tickoo',
+                        regNo: '24BBS0163',
+                        outlet: currentOutlet,
+                        items: orderItems,
+                        totalAmount: total,
+                        paymentMethod: 'razorpay'
+                    })
+                });
+
+                if (orderRes.ok) {
+                    const orderResult = await orderRes.json();
+                    if (orderResult.data && orderResult.data.orderToken) {
+                        token = orderResult.data.orderToken;
+                        syncedToBackend = true;
+                    }
+                }
+            } catch (err) {
+                console.log('Order saved in local prototype fallback mode:', err.message);
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Simulate Successful Payment';
+
+            const syncMsg = syncedToBackend ? '\n(Synced with GoBite Backend & Vendor Kitchen!)' : '\n(Running in offline prototype mode)';
+            alert(`🎉 Payment Successful via Razorpay!\nYour Order Token is: ${token}\nShow this token at ${currentOutlet} for pickup.${syncMsg}`);
+            
             cartState = {};
             renderMenu();
             updateCartUI();
@@ -814,6 +930,8 @@
             toggleBtn.textContent = nextTheme === 'light' ? '🌙' : '☀️';
         });
 
+        // Initialize menu and check API connection
+        fetchMenuFromBackend(currentOutlet);
         renderMenu();
     </script>
 </body>
