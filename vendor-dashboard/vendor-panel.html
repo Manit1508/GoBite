@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoBite - Vendor Kitchen Order Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --surface-color: #161f30;
+            --surface-hover: #1e293b;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --primary: #f97316;
+            --primary-hover: #ea580c;
+            --card-shadow: rgba(0, 0, 0, 0.25);
+            --badge-new: #38bdf8;
+            --badge-prep: #f59e0b;
+            --badge-ready: #10b981;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8fafc;
+            --surface-color: #ffffff;
+            --surface-hover: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #f97316;
+            --primary-hover: #ea580c;
+            --card-shadow: rgba(0, 0, 0, 0.08);
+            --badge-new: #0284c7;
+            --badge-prep: #d97706;
+            --badge-ready: #059669;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 4rem;
+        }
+
+        /* Header Navigation */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .outlet-badge {
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            font-size: 0.8rem;
+            padding: 0.35rem 0.8rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+
+        /* Top Metrics Overview */
+        .metrics-container {
+            max-width: 1200px;
+            margin: 2rem auto 1.5rem;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .metric-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 4px 15px var(--card-shadow);
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-val {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        /* Kanban Column Layout */
+        .board-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .board-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .kanban-col {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+
+        .col-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .col-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .col-count {
+            background: var(--surface-hover);
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex-grow: 1;
+        }
+
+        /* Order Ticket Card */
+        .order-ticket {
+            background: var(--surface-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.1rem;
+            box-shadow: 0 2px 8px var(--card-shadow);
+        }
+
+        .ticket-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .order-token {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .order-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .student-meta {
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .student-name {
+            font-weight: 600;
+        }
+
+        .student-id {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .order-items-list {
+            list-style: none;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .order-items-list li {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.35rem;
+        }
+
+        .ticket-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.55rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            transition: opacity 0.2s ease;
+        }
+
+        .action-btn:hover {
+            opacity: 0.88;
+        }
+
+        .btn-prep {
+            background: #f59e0b;
+            color: #000;
+        }
+
+        .btn-ready {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .btn-done {
+            background: #64748b;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="../index.html" class="brand-nav">
+                <div class="brand-icon">G</div>
+                <span style="font-weight:700; font-size: 1.1rem;">GoBite Vendor</span>
+            </a>
+            <span class="outlet-badge">Main Food Court &bull; Station 1</span>
+        </div>
+        <div class="nav-actions">
+            <button class="nav-btn" id="themeToggleBtn">☀️</button>
+            <a href="../index.html" class="nav-btn" style="background:#ef4444; color:#fff; border:none;">Log Out</a>
+        </div>
+    </header>
+
+    <!-- Top Counter Metrics -->
+    <section class="metrics-container">
+        <div class="metric-card">
+            <div class="metric-label">Incoming Orders</div>
+            <div class="metric-val" id="metricIncoming" style="color: var(--badge-new);">0</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">In Kitchen Preparation</div>
+            <div class="metric-val" id="metricPrep" style="color: var(--badge-prep);">0</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Ready for Pickup</div>
+            <div class="metric-val" id="metricReady" style="color: var(--badge-ready);">0</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Total Completed Today</div>
+            <div class="metric-val" id="metricCompleted">142</div>
+        </div>
+    </section>
+
+    <!-- Kanban Status Columns -->
+    <main class="board-container">
+        <!-- New Incoming -->
+        <div class="kanban-col">
+            <div class="col-header">
+                <div class="col-title">📥 Incoming Orders</div>
+                <div class="col-count" id="countIncoming">0</div>
+            </div>
+            <div class="card-list" id="incomingList"></div>
+        </div>
+
+        <!-- Preparing -->
+        <div class="kanban-col">
+            <div class="col-header">
+                <div class="col-title">🍳 Preparing in Kitchen</div>
+                <div class="col-count" id="countPrep">0</div>
+            </div>
+            <div class="card-list" id="prepList"></div>
+        </div>
+
+        <!-- Ready for Pickup -->
+        <div class="kanban-col">
+            <div class="col-header">
+                <div class="col-title">✅ Ready for Pickup</div>
+                <div class="col-count" id="countReady">0</div>
+            </div>
+            <div class="card-list" id="readyList"></div>
+        </div>
+    </main>
+
+    <script>
+        // Mock Orders Dataset
+        let orders = [
+            {
+                id: "GB-4102",
+                studentName: "Manit Gauba",
+                regNo: "24BBS0148",
+                time: "2 mins ago",
+                items: [
+                    { name: "Crispy Veg Burger", qty: 2 },
+                    { name: "Classic Cold Coffee", qty: 1 }
+                ],
+                total: 260,
+                status: "incoming"
+            },
+            {
+                id: "GB-4103",
+                studentName: "Kapish Tickoo",
+                regNo: "24BBS0163",
+                time: "5 mins ago",
+                items: [
+                    { name: "Paneer Tikka Roll", qty: 1 },
+                    { name: "Peri Peri Fries", qty: 1 }
+                ],
+                total: 195,
+                status: "preparing"
+            },
+            {
+                id: "GB-4104",
+                studentName: "Deepujjwal Singh",
+                regNo: "24BBS0213",
+                time: "9 mins ago",
+                items: [
+                    { name: "Steamed Momos (6 pcs)", qty: 2 }
+                ],
+                total: 160,
+                status: "ready"
+            }
+        ];
+
+        let completedCount = 142;
+
+        function renderOrders() {
+            const incomingList = document.getElementById('incomingList');
+            const prepList = document.getElementById('prepList');
+            const readyList = document.getElementById('readyList');
+
+            incomingList.innerHTML = '';
+            prepList.innerHTML = '';
+            readyList.innerHTML = '';
+
+            let inCount = 0;
+            let prCount = 0;
+            let rdCount = 0;
+
+            orders.forEach(order => {
+                const card = document.createElement('div');
+                card.className = 'order-ticket';
+
+                const itemsHtml = order.items.map(item => `
+                    <li>
+                        <span>${item.qty}x ${item.name}</span>
+                    </li>
+                `).join('');
+
+                let actionBtnHtml = '';
+                if (order.status === 'incoming') {
+                    inCount++;
+                    actionBtnHtml = `<button class="action-btn btn-prep" onclick="moveOrderStatus('${order.id}', 'preparing')">Accept & Start Cooking</button>`;
+                    card.innerHTML = getCardContent(order, itemsHtml, actionBtnHtml);
+                    incomingList.appendChild(card);
+                } else if (order.status === 'preparing') {
+                    prCount++;
+                    actionBtnHtml = `<button class="action-btn btn-ready" onclick="moveOrderStatus('${order.id}', 'ready')">Mark as Ready</button>`;
+                    card.innerHTML = getCardContent(order, itemsHtml, actionBtnHtml);
+                    prepList.appendChild(card);
+                } else if (order.status === 'ready') {
+                    rdCount++;
+                    actionBtnHtml = `<button class="action-btn btn-done" onclick="completeOrder('${order.id}')">Handover & Complete</button>`;
+                    card.innerHTML = getCardContent(order, itemsHtml, actionBtnHtml);
+                    readyList.appendChild(card);
+                }
+            });
+
+            // Update Counts and Metrics
+            document.getElementById('countIncoming').textContent = inCount;
+            document.getElementById('countPrep').textContent = prCount;
+            document.getElementById('countReady').textContent = rdCount;
+
+            document.getElementById('metricIncoming').textContent = inCount;
+            document.getElementById('metricPrep').textContent = prCount;
+            document.getElementById('metricReady').textContent = rdCount;
+            document.getElementById('metricCompleted').textContent = completedCount;
+        }
+
+        function getCardContent(order, itemsHtml, actionBtnHtml) {
+            return `
+                <div class="ticket-top">
+                    <span class="order-token">${order.id}</span>
+                    <span class="order-time">${order.time}</span>
+                </div>
+                <div class="student-meta">
+                    <div class="student-name">${order.studentName}</div>
+                    <div class="student-id">${order.regNo} &bull; Paid Online</div>
+                </div>
+                <ul class="order-items-list">
+                    ${itemsHtml}
+                </ul>
+                <div class="ticket-actions">
+                    ${actionBtnHtml}
+                </div>
+            `;
+        }
+
+        function moveOrderStatus(id, newStatus) {
+            const target = orders.find(o => o.id === id);
+            if (target) {
+                target.status = newStatus;
+                renderOrders();
+            }
+        }
+
+        function completeOrder(id) {
+            orders = orders.filter(o => o.id !== id);
+            completedCount++;
+            renderOrders();
+        }
+
+        // Dark / Light Theme Sync
+        const rootElement = document.documentElement;
+        const toggleBtn = document.getElementById('themeToggleBtn');
+        const savedTheme = localStorage.getItem('gobite-theme') || 'dark';
+        rootElement.setAttribute('data-theme', savedTheme);
+        toggleBtn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
+
+        toggleBtn.addEventListener('click', () => {
+            const nextTheme = rootElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            rootElement.setAttribute('data-theme', nextTheme);
+            localStorage.setItem('gobite-theme', nextTheme);
+            toggleBtn.textContent = nextTheme === 'light' ? '🌙' : '☀️';
+        });
+
+        renderOrders();
+    </script>
+</body>
+</html>
