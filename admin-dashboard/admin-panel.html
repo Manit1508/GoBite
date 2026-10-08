@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoBite - Admin Operations & Glitch Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --surface-color: #161f30;
+            --surface-hover: #1e293b;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --primary: #f97316;
+            --card-shadow: rgba(0, 0, 0, 0.25);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8fafc;
+            --surface-color: #ffffff;
+            --surface-hover: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #f97316;
+            --card-shadow: rgba(0, 0, 0, 0.08);
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 4rem;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px var(--card-shadow);
+        }
+
+        .stat-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-status {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .grid-two-col {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .grid-two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px var(--card-shadow);
+        }
+
+        .panel-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem 0.5rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 500;
+        }
+
+        td {
+            padding: 1rem 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .status-pill {
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .status-busy {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .log-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.85rem;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="../index.html" class="brand-nav">
+            <div class="brand-icon">G</div>
+            <span style="font-weight:700; font-size: 1.1rem;">GoBite Admin</span>
+        </a>
+        <div class="nav-actions">
+            <button class="nav-btn" id="themeToggleBtn">☀️</button>
+            <a href="../index.html" class="nav-btn" style="background:#ef4444; color:#fff; border:none;">Log Out</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="section-header">
+            <h2>Campus Operations & System Health</h2>
+            <p style="color: var(--text-secondary);">Real-time monitoring across all campus food stalls and API gateways.</p>
+        </div>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Total Orders Today</div>
+                <div class="stat-value" style="color: var(--primary);">482</div>
+                <div class="stat-status" style="color: var(--success);">↑ 18% from yesterday</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Gross Campus Volume</div>
+                <div class="stat-value">₹56,430</div>
+                <div class="stat-status" style="color: var(--text-secondary);">Via Razorpay Campus Gateway</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Active Outlets</div>
+                <div class="stat-value">4 / 4</div>
+                <div class="stat-status" style="color: var(--success);">● All kitchens operational</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">System & API Status</div>
+                <div class="stat-value" style="color: var(--success);">Healthy</div>
+                <div class="stat-status" style="color: var(--success);">✓ 0 Critical Glitches</div>
+            </div>
+        </section>
+
+        <section class="grid-two-col">
+            <div class="panel">
+                <div class="panel-title">Campus Outlet Overview</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Outlet Name</th>
+                            <th>Today's Orders</th>
+                            <th>Avg Prep Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Main Food Court</strong></td>
+                            <td>214 orders</td>
+                            <td>8.5 mins</td>
+                            <td><span class="status-pill status-busy">High Traffic</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gazebo Bistro</strong></td>
+                            <td>126 orders</td>
+                            <td>6.2 mins</td>
+                            <td><span class="status-pill status-online">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>DC Bakery & Cafe</strong></td>
+                            <td>88 orders</td>
+                            <td>4.0 mins</td>
+                            <td><span class="status-pill status-online">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>North Square Canteen</strong></td>
+                            <td>54 orders</td>
+                            <td>7.1 mins</td>
+                            <td><span class="status-pill status-online">Normal</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">System & Glitch Audit Log</div>
+                <div class="log-item">
+                    <span class="log-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">RESOLVED</span>
+                    <div>
+                        <div>Razorpay Webhook synced</div>
+                        <div style="color: var(--text-secondary); font-size: 0.75rem;">12 mins ago &bull; Latency: 42ms</div>
+                    </div>
+                </div>
+                <div class="log-item">
+                    <span class="log-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning);">MONITOR</span>
+                    <div>
+                        <div>Peak load on Main Food Court</div>
+                        <div style="color: var(--text-secondary); font-size: 0.75rem;">28 mins ago &bull; 14 simultaneous orders</div>
+                    </div>
+                </div>
+                <div class="log-item">
+                    <span class="log-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">SYSTEM</span>
+                    <div>
+                        <div>Database backup routine completed</div>
+                        <div style="color: var(--text-secondary); font-size: 0.75rem;">1 hr ago &bull; MongoDB Atlas Cluster</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const rootElement = document.documentElement;
+        const toggleBtn = document.getElementById('themeToggleBtn');
+        const savedTheme = localStorage.getItem('gobite-theme') || 'dark';
+        rootElement.setAttribute('data-theme', savedTheme);
+        toggleBtn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
+
+        toggleBtn.addEventListener('click', () => {
+            const nextTheme = rootElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            rootElement.setAttribute('data-theme', nextTheme);
+            localStorage.setItem('gobite-theme', nextTheme);
+            toggleBtn.textContent = nextTheme === 'light' ? '🌙' : '☀️';
+        });
+    </script>
+</body>
+</html>

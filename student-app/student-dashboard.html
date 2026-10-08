@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoBite - Student Food Pre-Order</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --surface-color: #161f30;
+            --surface-hover: #1e293b;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --primary: #f97316;
+            --primary-hover: #ea580c;
+            --card-shadow: rgba(0, 0, 0, 0.25);
+            --out-of-stock: #64748b;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8fafc;
+            --surface-color: #ffffff;
+            --surface-hover: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #f97316;
+            --primary-hover: #ea580c;
+            --card-shadow: rgba(0, 0, 0, 0.08);
+            --out-of-stock: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 5rem;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-btn {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .cart-trigger-btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+        }
+
+        .hero {
+            padding: 2.5rem 2rem 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .outlet-scroll {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 1rem 0 0.5rem;
+        }
+
+        .outlet-pill {
+            padding: 0.6rem 1.2rem;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            white-space: nowrap;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .outlet-pill.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .filter-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--surface-color);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn.active {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            border-color: var(--primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .food-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: transform 0.2s ease;
+        }
+
+        .food-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .food-card.out-of-stock {
+            opacity: 0.65;
+            filter: grayscale(40%);
+        }
+
+        .image-wrapper {
+            position: relative;
+            width: 100%;
+            height: 160px;
+            overflow: hidden;
+            background: #1e293b;
+        }
+
+        .food-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .stock-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .food-body {
+            padding: 1.25rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .food-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .food-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .badge-veg {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            border: 1px solid #22c55e;
+        }
+
+        .badge-nonveg {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+
+        .food-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .food-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+        }
+
+        .food-price {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .add-cart-btn {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.45rem 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .add-cart-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .add-cart-btn:disabled {
+            background: var(--surface-hover);
+            color: var(--out-of-stock);
+            border-color: transparent;
+            cursor: not-allowed;
+        }
+
+        .qty-stepper {
+            display: flex;
+            align-items: center;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+        }
+
+        .qty-stepper button {
+            background: none;
+            border: none;
+            color: #fff;
+            padding: 0.4rem 0.75rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .qty-stepper button:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .qty-stepper span {
+            padding: 0 0.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            min-width: 22px;
+            text-align: center;
+        }
+
+        .cart-drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            display: none;
+        }
+
+        .cart-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            max-width: 400px;
+            background: var(--surface-color);
+            border-left: 1px solid var(--border-color);
+            z-index: 55;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cart-drawer.open {
+            transform: translateX(0);
+        }
+
+        .cart-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-cart-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .cart-items {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface-hover);
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .cart-item-info {
+            flex-grow: 1;
+        }
+
+        .cart-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.9rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 60;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .rzp-box {
+            background: #ffffff;
+            color: #0f172a;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        .rzp-header {
+            background: #0c2340;
+            color: #fff;
+            padding: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rzp-body {
+            padding: 1.5rem;
+        }
+
+        .rzp-btn {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="../index.html" class="brand-nav">
+            <div class="brand-icon">G</div>
+            <span style="font-weight:700; font-size: 1.1rem;">GoBite Campus</span>
+        </a>
+        <div class="nav-actions">
+            <button class="nav-btn" id="themeToggleBtn">☀️</button>
+            <button class="nav-btn cart-trigger-btn" id="openCartBtn">
+                🛒 Cart (<span id="cartCount">0</span>)
+            </button>
+            <a href="../index.html" class="nav-btn" style="background:#ef4444; color:#fff; border:none; font-weight:600;">Log Out</a>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h2>Campus Food Outlets</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Select an outlet to browse available items and pre-order:</p>
+        <div class="outlet-scroll">
+            <div class="outlet-pill active" onclick="switchOutlet('KC Food Court')">🍔 KC Food Court</div>
+            <div class="outlet-pill" onclick="switchOutlet('Nescafe')">☕ Nescafe</div>
+            <div class="outlet-pill" onclick="switchOutlet('Darling Canteen')">🍛 Darling Canteen</div>
+            <div class="outlet-pill" onclick="switchOutlet('DC Bakery')">🥪 DC Bakery</div>
+        </div>
+
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="setFilter('all', this)">All Items</button>
+            <button class="filter-btn" onclick="setFilter('veg', this)">🟢 Veg Only</button>
+            <button class="filter-btn" onclick="setFilter('nonveg', this)">🔴 Non-Veg Only</button>
+        </div>
+    </section>
+
+    <main class="container">
+        <h3 class="section-title" id="outletHeading">KC Food Court Menu</h3>
+        <div class="menu-grid" id="menuGrid"></div>
+    </main>
+
+    <div class="cart-drawer-overlay" id="cartOverlay"></div>
+    <aside class="cart-drawer" id="cartDrawer">
+        <div class="cart-header">
+            <h3>Your Tray</h3>
+            <button class="close-cart-btn" id="closeCartBtn">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItemsList">
+            <p style="color: var(--text-secondary); text-align: center; margin-top: 2rem;">Your cart is empty.</p>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total-row">
+                <span>Total Amount:</span>
+                <span id="cartTotalPrice">₹0</span>
+            </div>
+            <button class="checkout-btn" id="proceedCheckoutBtn">Pay with Razorpay</button>
+        </div>
+    </aside>
+
+    <div class="modal-overlay" id="rzpModal">
+        <div class="rzp-box">
+            <div class="rzp-header">
+                <div>
+                    <span style="font-size:0.75rem; color:#94a3b8; display:block;">PAYING GOBITE CAMPUS</span>
+                    <strong id="rzpOutletName">KC Food Court</strong>
+                </div>
+                <div style="font-weight:700; color:#38bdf8;">Razorpay</div>
+            </div>
+            <div class="rzp-body">
+                <p style="font-size:0.9rem; color:#475569; margin-bottom: 0.5rem;">Amount to Pay:</p>
+                <h2 style="font-size:1.8rem; margin-bottom: 1.5rem;" id="rzpModalPrice">₹0</h2>
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:0.8rem; border-radius:8px; margin-bottom:1rem; font-size:0.85rem;">
+                    <div>💳 <strong>UPI / Net Banking / Card</strong></div>
+                    <span style="color:#64748b;">Instant campus pickup token generated upon payment.</span>
+                </div>
+                <button class="rzp-btn" id="confirmPaymentBtn">Simulate Successful Payment</button>
+                <button style="width:100%; background:none; border:none; color:#64748b; margin-top:0.5rem; cursor:pointer;" onclick="closeRzpModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuData = [
+            { 
+                id: 1, 
+                name: "Crispy Veg Burger", 
+                price: 95, 
+                veg: true, 
+                inStock: true,
+                desc: "Aloo tikki patty, lettuce, house sauce.", 
+                img: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80" 
+            },
+            { 
+                id: 2, 
+                name: "Paneer Kathi Roll", 
+                price: 120, 
+                veg: true, 
+                inStock: true,
+                desc: "Tandoori grilled cottage cheese wrap with mint chutney.", 
+                img: "https://spicecravings.com/wp-content/uploads/2020/12/Paneer-kathi-Roll-Featured-1.jpg" 
+            },
+            { 
+                id: 3, 
+                name: "Chicken Club Sandwich", 
+                price: 140, 
+                veg: false, 
+                inStock: true,
+                desc: "Grilled chicken, toasted brown bread, mayo.", 
+                img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=600&q=80" 
+            },
+            { 
+                id: 4, 
+                name: "Classic Cold Coffee", 
+                price: 70, 
+                veg: true, 
+                inStock: false,
+                desc: "Thick brewed espresso blended with cream.", 
+                img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80" 
+            },
+            { 
+                id: 5, 
+                name: "Steamed Momos (6 pcs)", 
+                price: 80, 
+                veg: true, 
+                inStock: true,
+                desc: "Served with fiery red garlic dip.", 
+                img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80" 
+            },
+            { 
+                id: 6, 
+                name: "Peri Peri Fries", 
+                price: 75, 
+                veg: true, 
+                inStock: true,
+                desc: "Crispy golden tossed french fries with spicy seasoning.", 
+                img: "https://sreerajlassibar.com/wp-content/uploads/2024/09/PERI-PERI-FRIES.jpg" 
+            }
+        ];
+
+        let cartState = {};
+        let currentOutlet = "KC Food Court";
+        let activeFilter = "all";
+
+        function renderMenu() {
+            const grid = document.getElementById('menuGrid');
+            
+            const filteredItems = menuData.filter(item => {
+                if (activeFilter === "veg") return item.veg === true;
+                if (activeFilter === "nonveg") return item.veg === false;
+                return true;
+            });
+
+            if (filteredItems.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 2rem;">No items found matching the selected filter.</p>`;
+                return;
+            }
+
+            grid.innerHTML = filteredItems.map(item => {
+                const qty = cartState[item.id] || 0;
+                
+                let actionControl = '';
+                if (!item.inStock) {
+                    actionControl = `<button class="add-cart-btn" disabled>Sold Out</button>`;
+                } else if (qty > 0) {
+                    actionControl = `
+                        <div class="qty-stepper">
+                            <button onclick="decrementItem(${item.id})">-</button>
+                            <span>${qty}</span>
+                            <button onclick="incrementItem(${item.id})">+</button>
+                        </div>
+                    `;
+                } else {
+                    actionControl = `<button class="add-cart-btn" onclick="incrementItem(${item.id})">+ Add</button>`;
+                }
+
+                return `
+                    <div class="food-card ${!item.inStock ? 'out-of-stock' : ''}">
+                        <div class="image-wrapper">
+                            <img src="${item.img}" alt="${item.name}" class="food-image" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80'">
+                            ${!item.inStock ? '<span class="stock-tag">OUT OF STOCK</span>' : ''}
+                        </div>
+                        <div class="food-body">
+                            <div>
+                                <div class="food-header">
+                                    <span class="food-name">${item.name}</span>
+                                    <span class="badge ${item.veg ? 'badge-veg' : 'badge-nonveg'}">${item.veg ? 'VEG' : 'NON-VEG'}</span>
+                                </div>
+                                <p class="food-desc">${item.desc}</p>
+                            </div>
+                            <div class="food-footer">
+                                <span class="food-price">₹${item.price}</span>
+                                <div>${actionControl}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setFilter(type, btnElement) {
+            activeFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            renderMenu();
+        }
+
+        function incrementItem(id) {
+            const item = menuData.find(m => m.id === id);
+            if (!item.inStock) return;
+            cartState[id] = (cartState[id] || 0) + 1;
+            renderMenu();
+            updateCartUI();
+        }
+
+        function decrementItem(id) {
+            if (cartState[id] > 1) {
+                cartState[id] -= 1;
+            } else {
+                delete cartState[id];
+            }
+            renderMenu();
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const cartItemIds = Object.keys(cartState).map(Number);
+            const totalItemsCount = Object.values(cartState).reduce((a, b) => a + b, 0);
+            
+            document.getElementById('cartCount').textContent = totalItemsCount;
+            const list = document.getElementById('cartItemsList');
+            const totalDisplay = document.getElementById('cartTotalPrice');
+
+            if (cartItemIds.length === 0) {
+                list.innerHTML = `<p style="color: var(--text-secondary); text-align: center; margin-top: 2rem;">Your cart is empty.</p>`;
+                totalDisplay.textContent = `₹0`;
+                return;
+            }
+
+            let grandTotal = 0;
+            list.innerHTML = cartItemIds.map(id => {
+                const item = menuData.find(m => m.id === id);
+                const qty = cartState[id];
+                const itemTotal = item.price * qty;
+                grandTotal += itemTotal;
+
+                return `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div style="font-weight:600; font-size:0.9rem;">${item.name}</div>
+                            <div style="font-size:0.8rem; color: var(--primary);">₹${item.price} × ${qty} = ₹${itemTotal}</div>
+                        </div>
+                        <div class="qty-stepper" style="transform: scale(0.9);">
+                            <button onclick="decrementItem(${item.id})">-</button>
+                            <span>${qty}</span>
+                            <button onclick="incrementItem(${item.id})">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            totalDisplay.textContent = `₹${grandTotal}`;
+        }
+
+        function switchOutlet(name) {
+            currentOutlet = name;
+            document.getElementById('outletHeading').textContent = `${name} Menu`;
+            document.querySelectorAll('.outlet-pill').forEach(el => {
+                el.classList.toggle('active', el.textContent.includes(name));
+            });
+        }
+
+        const drawer = document.getElementById('cartDrawer');
+        const overlay = document.getElementById('cartOverlay');
+        document.getElementById('openCartBtn').onclick = () => {
+            drawer.classList.add('open');
+            overlay.style.display = 'block';
+        };
+        const closeCart = () => {
+            drawer.classList.remove('open');
+            overlay.style.display = 'none';
+        };
+        document.getElementById('closeCartBtn').onclick = closeCart;
+        overlay.onclick = closeCart;
+
+        const rzpModal = document.getElementById('rzpModal');
+        document.getElementById('proceedCheckoutBtn').onclick = () => {
+            const hasItems = Object.keys(cartState).length > 0;
+            if (!hasItems) {
+                alert('Please add items to your cart first.');
+                return;
+            }
+            closeCart();
+            let total = 0;
+            Object.keys(cartState).forEach(id => {
+                const item = menuData.find(m => m.id === Number(id));
+                total += item.price * cartState[id];
+            });
+            document.getElementById('rzpOutletName').textContent = currentOutlet;
+            document.getElementById('rzpModalPrice').textContent = `₹${total}`;
+            rzpModal.style.display = 'flex';
+        };
+
+        function closeRzpModal() {
+            rzpModal.style.display = 'none';
+        }
+
+        document.getElementById('confirmPaymentBtn').onclick = () => {
+            const token = "GB-" + Math.floor(1000 + Math.random() * 9000);
+            alert(`🎉 Payment Successful via Razorpay!\nYour Order Token is: ${token}\nShow this token at ${currentOutlet} for pickup.`);
+            cartState = {};
+            renderMenu();
+            updateCartUI();
+            closeRzpModal();
+        };
+
+        const rootElement = document.documentElement;
+        const toggleBtn = document.getElementById('themeToggleBtn');
+        const savedTheme = localStorage.getItem('gobite-theme') || 'dark';
+        rootElement.setAttribute('data-theme', savedTheme);
+        toggleBtn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
+
+        toggleBtn.addEventListener('click', () => {
+            const nextTheme = rootElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            rootElement.setAttribute('data-theme', nextTheme);
+            localStorage.setItem('gobite-theme', nextTheme);
+            toggleBtn.textContent = nextTheme === 'light' ? '🌙' : '☀️';
+        });
+
+        renderMenu();
+    </script>
+</body>
+</html>
