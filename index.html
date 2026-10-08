@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoBite - Campus Food Pre-Ordering Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --card-bg: rgba(30, 41, 59, 0.65);
+            --card-hover-bg: rgba(30, 41, 59, 0.85);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --icon-box-bg: rgba(255, 255, 255, 0.06);
+            --footer-text: #94a3b8;
+            --overlay-gradient: linear-gradient(180deg, rgba(11, 15, 25, 0.82) 0%, rgba(11, 15, 25, 0.96) 100%);
+            --toggle-bg: rgba(255, 255, 255, 0.15);
+            --toggle-border: rgba(255, 255, 255, 0.25);
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-hover-bg: rgba(255, 255, 255, 0.98);
+            --card-border: rgba(226, 232, 240, 0.9);
+            --icon-box-bg: rgba(241, 245, 249, 0.9);
+            --footer-text: #64748b;
+            --overlay-gradient: linear-gradient(180deg, rgba(248, 250, 252, 0.85) 0%, rgba(248, 250, 252, 0.98) 100%);
+            --toggle-bg: rgba(255, 255, 255, 0.8);
+            --toggle-border: #cbd5e1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            background-color: var(--bg-color);
+        }
+
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 50% 20%, rgba(249, 115, 22, 0.18), transparent 45%),
+                var(--overlay-gradient),
+                url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+        }
+
+        .grid-pattern {
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+            background-size: 32px 32px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Dark / Light Toggle Switch */
+        .theme-toggle-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--toggle-bg);
+            border: 1px solid var(--toggle-border);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 900px;
+            width: 90%;
+            padding: 2.5rem 1.5rem;
+            z-index: 1;
+        }
+
+        .brand-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-circle {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(145deg, #ff6b00, #ea580c);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 14px 35px rgba(234, 88, 12, 0.45);
+            margin-bottom: 1.25rem;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.4s ease;
+        }
+
+        .logo-circle:hover {
+            transform: scale(1.05) rotate(-3deg);
+        }
+
+        .logo-circle svg {
+            width: 58px;
+            height: 58px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(180deg, #ea580c 0%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.4rem;
+        }
+
+        [data-theme="dark"] h1 {
+            background: linear-gradient(180deg, #ffffff 40%, #fdba74 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            font-weight: 400;
+            max-width: 600px;
+        }
+
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .role-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .role-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2.5rem 1.5rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .role-card:hover {
+            transform: translateY(-8px);
+            background: var(--card-hover-bg);
+            border-color: rgba(249, 115, 22, 0.6);
+            box-shadow: 0 20px 35px rgba(234, 88, 12, 0.2);
+        }
+
+        .role-icon-box {
+            width: 70px;
+            height: 70px;
+            background: var(--icon-box-bg);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin-bottom: 1.25rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .role-card:hover .role-icon-box {
+            background: rgba(249, 115, 22, 0.15);
+            border-color: rgba(249, 115, 22, 0.4);
+            transform: scale(1.08);
+        }
+
+        .role-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .footer-note {
+            margin-top: 3.5rem;
+            font-size: 0.9rem;
+            color: var(--footer-text);
+        }
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle dark/light mode">
+        <span id="themeIcon">☀️</span>
+        <span id="themeText">Light Mode</span>
+    </button>
+
+    <div class="bg-layer"></div>
+    <div class="grid-pattern"></div>
+
+    <div class="container">
+        <div class="brand-header">
+            <div class="logo-circle">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M26 38L32 24C32.8 22 34.6 20.8 36.8 20.8H63.2C65.4 20.8 67.2 22 68 24L74 38C75.2 40.5 76 43.5 76 46.5V72C76 77 72 81 67 81H33C28 81 24 77 24 72V46.5C24 43.5 24.8 40.5 26 38Z" 
+                          stroke="white" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M26 38H74" stroke="white" stroke-width="6.5" stroke-linecap="round"/>
+                    <path d="M42 47C42 51.5 45.5 55 50 55C54.5 55 58 51.5 58 47" 
+                          stroke="white" stroke-width="6.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h1>GoBite</h1>
+            <p class="subtitle">Smart Pre-Ordering System for Campus Food Outlets</p>
+        </div>
+
+        <div class="role-grid">
+            <a href="student-app/student-dashboard.html" class="role-card">
+                <div class="role-icon-box">🍔</div>
+                <h3>Student Login</h3>
+            </a>
+
+            <a href="vendor-dashboard/vendor-panel.html" class="role-card">
+                <div class="role-icon-box">👨‍🍳</div>
+                <h3>Vendor Login</h3>
+            </a>
+
+            <a href="admin-dashboard/admin-panel.html" class="role-card">
+                <div class="role-icon-box">📊</div>
+                <h3>Admin Login</h3>
+            </a>
+        </div>
+
+       
+    </div>
+
+    <script>
+        const rootElement = document.documentElement;
+        const toggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+
+        // Check for preserved user preference
+        const savedTheme = localStorage.getItem('gobite-theme') || 'dark';
+        applyTheme(savedTheme);
+
+        toggleBtn.addEventListener('click', () => {
+            const currentTheme = rootElement.getAttribute('data-theme');
+            const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(targetTheme);
+            localStorage.setItem('gobite-theme', targetTheme);
+        });
+
+        function applyTheme(theme) {
+            rootElement.setAttribute('data-theme', theme);
+            if (theme === 'light') {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+            } else {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            }
+        }
+    </script>
+</body>
+</html>
