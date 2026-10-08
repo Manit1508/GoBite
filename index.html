@@ -74,7 +74,6 @@
             pointer-events: none;
         }
 
-        /* Dark / Light Toggle Switch */
         .theme-toggle-btn {
             position: absolute;
             top: 1.5rem;
@@ -254,23 +253,28 @@
         </div>
 
         <div class="role-grid">
+            <!-- Student Portal -->
             <a href="student-app/student-dashboard.html" class="role-card">
                 <div class="role-icon-box">🍔</div>
                 <h3>Student Login</h3>
             </a>
 
-            <a href="vendor-dashboard/vendor-panel.html" class="role-card">
+            <!-- Vendor Portal (Connected to Vendor folder) -->
+            <a href="Vendor/vendor-panel.html" class="role-card">
                 <div class="role-icon-box">👨‍🍳</div>
                 <h3>Vendor Login</h3>
             </a>
 
+            <!-- Admin Portal -->
             <a href="admin-dashboard/admin-panel.html" class="role-card">
                 <div class="role-icon-box">📊</div>
                 <h3>Admin Login</h3>
             </a>
         </div>
 
-       
+        <div class="footer-note">
+            GoBite Usability Design Project &bull; Vellore Institute of Technology
+        </div>
     </div>
 
     <script>
@@ -279,7 +283,6 @@
         const themeIcon = document.getElementById('themeIcon');
         const themeText = document.getElementById('themeText');
 
-        // Check for preserved user preference
         const savedTheme = localStorage.getItem('gobite-theme') || 'dark';
         applyTheme(savedTheme);
 
